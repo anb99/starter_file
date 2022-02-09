@@ -1,0 +1,100 @@
+---
+title: "Population Profile of the City of Toronto in 2016 and Its Implications on Housing"
+author: 
+  - Athaliah Biju
+thanks: "Code and data are available at [my GitHub repo]()"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+abstract: "Toronto is one of the biggest cities in North America. This paper examines the age profile of Toronto's population and its implications in the housing affordability crisis. Younger populations are moving away from the city due to unaffordable housing, causing a population decline in those age groups."
+output:
+  bookdown::pdf_document2
+toc: FALSE
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(janitor)
+library(opendatatoronto)
+library(tidyverse)
+library(dplyr)  
+library(ggplot2)
+```
+
+# Introduction
+
+This paper examines the population profile of the city of Toronto. The dataset used is from `opendatatoronto` [@citeOpenDataTO]. The Open Data Portal was launched in Fall 2009  with the aim of responding to increasing demand for open and transparent data [@citeTO]. The dataset used is the Neighbourhood Profiles with contains "demographic information about each neighbourhood, prepared by the City’s Social Policy Analysis & Research Unit from Statistics Canada Census data (updated every 5 years)"[@citeNP]. This data is important to paint a picture of the demographics of Toronto. It could help the city prioritize development of infrastructure for certain demographics. The population of Toronto was approximately 2,731,571 according to the 2016 Census, with a 4.5% increase [@citeOpenDataTO]. The paper looks at the age group composition of the population and its implications on the housing affordability crisis.
+
+
+# Data
+
+The programming language used for this analysis was `R` [@citeR]. The `tidyverse` package was used for data manipulation [@citeTidyverse]. Other packages  used were `dplyr`[@citeD], `ggplot`[@citeGG] and `knitr`[@citeKnitr]. R Markdown or `bookdown` was used to generate this document [@citeRM]. The dataset was last refreshed on October 7, 2019.
+
+First, I imported the Neighbourhood Profiles dataset from `opendatatoronto` [@citeTO]. The raw dataset includes data for Toronto's 140 neighbourhood with categories including Population, Families, Households and marital status, Language, Income, Immigration and citizenship, Ethnic origin, Housing, Education and Labour. Since I wanted to focus on the age characteristics of the population of Toronto as a whole, I excluded the other categories and the neighbourhood specific data. This left me with a data frame consisting of 48 observations and 3 variables: topic, characteristics, city_of_toronto. This can be seen in Table \@ref(tab:table) which was created using `ggplot` [@citeGG]. The table is an exact representation of the cleaned up dataset.
+
+
+```{r data_gathering, include = FALSE}
+# Based on: https://open.toronto.ca/dataset/neighbourhood-profiles
+
+raw_neighbourhood_data <-
+  read_csv(file = "https://ckan0.cf.opendata.inter.prod-toronto.ca/download_resource/ef0239b1-832b-4d0b-a1f3-4153e53b189e?format=csv", show_col_types = FALSE)
+
+write_csv(x = raw_neighbourhood_data, file = "neighbour_data.csv")
+
+```
+
+```{r data_cleaning, include = FALSE}
+
+clean_neighbourhood_file <-
+  clean_names(raw_neighbourhood_data) |> 
+  select(topic,characteristic, city_of_toronto) |>
+  filter(topic == "Age characteristics")
+         
+write_csv(x = clean_neighbourhood_file, file = "clean_neighbour_data.csv")
+```
+
+```{r data_exploration , include=FALSE}
+clean_neighbourhood_file <- 
+  read_csv(file = "clean_neighbour_data.csv",
+    show_col_types = FALSE
+    )
+```
+
+```{r table,fig.cap= "Age characteristics of the population of Toronto in 2016",  echo=FALSE}
+    clean_neighbourhood_file |>
+    select(characteristic, city_of_toronto)|>
+    
+    kable(caption = "Age characteristics of the population of Toronto in 2016",
+      col.names = c("Age Group", "Population"), 
+      booktabs = TRUE, 
+      linesep = ""
+    ) 
+```
+\newpage
+
+I then made a new dataset showing the age composition of the population without the gender as I wanted to plot a graph showing the age composition of the city of Toronto. I created a new variable and assigned the tibble of my cleaned dataset to it as it coincidentally contained the datapoints I wanted to include. This graph can be seen below in Figure \@ref(fig:age).
+
+```{r age, fig.cap= "Population of Toronto in 2016 by Age Group", echo=FALSE}
+
+age_composition <- head(clean_neighbourhood_file) 
+
+age_composition |>
+  ggplot(aes(x = characteristic, y = city_of_toronto)) + geom_bar(stat = "identity", fill = "darkblue", width = 0.8, position = "dodge") + theme_classic() + scale_x_discrete(guide = guide_axis(n.dodge = 3)) + xlab("Age Group)") + ylab("Population")
+
+```
+
+# Discussion
+We can see in Figure \@ref(fig:age), that the age group with the largest population is the Working Age group. a huge chunk of the population still includes the baby boomer generation (i.e. Seniors and Pre-retirement). However, we can also see that a substantial portion of population is young (i.e. Children and Youth). The age group with the lowest population are the Older Seniors. However, we can see that majority of the population is over the age 55.
+
+Recent data shows that Toronto as a whole experienced an approximately 12% increase, which will always be the case due to immigration [@TS]. However, Toronto is currently going through an affordability crisis. As a result, many young people and their families are moving from the city. This contributed to the decline in child population [@TS]. Experts state that this decline "could impact the social fabric of cities that no longer cater to families, as a temporary population may not want to invest in improving the city and ensuring it remains vibrant. Only the very wealthy will be able to make a city like Toronto a permanent home" [@TS]. The City must enact policies to make it more inclusive to people from various socioeconomic backgrounds and ages. Currently, "the city ... appeals to young adults who are working and can enjoy the bar and restaurant scene while living in a small space" [@TS]. However, this has led to a "conveyor belt [culture] young people stay until they want to have a family and then leave" [@TS]. If people begin to leave the city in droves, it could affect other areas such as infrastructure and policy. 
+
+
+\newpage
+
+
+# References
+
+
+
+ 
+
